@@ -210,6 +210,30 @@ if ($EdgeConfirm -eq 'Y' -or $EdgeConfirm -eq 'y') {
     Remove-Item -Path "$mountDirectory\Program Files (x86)\Microsoft\EdgeCore" -Recurse -Force > $null 2>&1
     Remove-Item -Path "$mountDirectory\Program Files (x86)\Microsoft\EdgeUpdate" -Recurse -Force > $null 2>&1
     Remove-Item -Path "$mountDirectory\Program Files (x86)\Microsoft\EdgeWebView" -Recurse -Force > $null 2>&1
+    Remove-Item -Path "$mountDirectory\ProgramData\Microsoft\EdgeUpdate" -Recurse -Force > $null 2>&1
+
+    # Removing Reg keys
+    $softwarePath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\SOFTWARE'
+    $systemPath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\SYSTEM'
+    reg load HKLM\zSOFTWARE $softwarePath >$null
+    reg load HKLM\zSYSTEM $systemPath >$null
+    reg delete "HKLM\zSOFTWARE\Microsoft\Active Setup\Installed Components\{9459C573-B17A-45AE-9F64-1857B5D58CEE}" /f > $null 2>&1
+    reg delete "HKLM\zSOFTWARE\WOW6432Node\Microsoft\Edge" /f > $null 2>&1
+    reg delete "HKLM\zSOFTWARE\WOW6432Node\Microsoft\EdgeUpdate" /f > $null 2>&1
+    reg delete "HKLM\zSYSTEM\CurrentControlSet\Services\edgeupdate" /f > $null 2>&1
+    reg delete "HKLM\zSYSTEM\CurrentControlSet\Services\edgeupdatem" /f > $null 2>&1
+    reg unload HKLM\z$softwarePath >$null 2>&1
+    reg unload HKLM\z$systemPath >$null 2>&1
+
+    # Removing Task
+    $edgeTask = Get-ChildItem -Path "$mountDirectory\Windows\System32\Tasks\MicrosoftEdge*"
+    if ($null -ne $edgeTask) {
+        foreach ($file in $edgeTask) {
+            takeown /F $file /R /D y > $null 2>&1
+            icacls $file /grant:R Administrators:F /T /C > $null 2>&1
+            Remove-Item -Path $file -Recurse -Force > $null 2>&1
+        }
+    }
 
     # For Windows 10 (Legacy EDGE)
     $edge = Get-ChildItem -Path "$mountDirectory\Windows\SystemApps\Microsoft.MicrosoftEdge*"
@@ -219,8 +243,6 @@ if ($EdgeConfirm -eq 'Y' -or $EdgeConfirm -eq 'y') {
             icacls $file /grant:R Administrators:F /T /C > $null 2>&1
             Remove-Item -Path $file -Recurse -Force > $null 2>&1
         }
-    } else {
-        Write-Host "No files found to delete."
     }
 
     Write-Host "Microsoft Edge has been removed."
@@ -278,6 +300,7 @@ Reg add "HKLM\zNTUSER\Control Panel\Desktop" /v "MenuShowDelay" /t REG_SZ /d "20
 Reg add "HKLM\zSOFTWARE\Policies\Microsoft\MRT" /v "DontOfferThroughWUAU" /t REG_DWORD /d "1" /f > $null 2>&1
 # Disable OneDrive Sync
 Reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\OneDrive" /v "DisableFileSyncNGSC" /t REG_DWORD /d "1" /f > $null 2>&1
+Reg add "HKLM\zSOFTWARE\Policies\Microsoft\OneDrive" /v "KFMBlockOptIn" /t REG_DWORD /d "1" /f > $null 2>&1
 
 Start-Sleep -Milliseconds 1500
 Write-Host "Unloading Registry ..."
@@ -341,7 +364,26 @@ if (-not (Test-Path -Path "$oscdimgPath")) {
     Write-Host
     Write-Host "Oscdimg.exe not found at '$oscdimgPath'. Exiting ..."
     Start-Sleep -Milliseconds 1800
-    Exit
+    Write-Host "Trying to Download oscdimg.exe"
+
+    # Downloading Oscdimg.exe
+    $adkUrl = "https://go.microsoft.com/fwlink/?linkid=2243390"
+    $downloadPath= "$scriptDirectory\ADKInstaller.exe"
+    $installPath = "C:\Program Files (x86)\Windows Kits\10"
+    $sourcePath = "$installPath\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg"
+    $destinationPath = "$scriptDirectory"
+
+    Invoke-WebRequest -Uri $adkUrl -OutFile $downloadPath
+
+    Write-Host
+    Write-Host "Installing ADK Setup. This may take some time. Do not exit the Script ..."
+
+    # Installing Deployment Tools only
+    Start-Process -FilePath $downloadPath -ArgumentList "/quiet /norestart /features OptionId.DeploymentTools" -Wait
+    Copy-Item -Path "$sourcePath\oscdimg.exe" -Destination $destinationPath -Force
+    Remove-Item -Path $downloadPath -Force
+    Write-Host "Installed Successfully"
+    Start-Sleep -Milliseconds 1000
 }
 
 # Generate ISO
