@@ -373,13 +373,16 @@ if (-not (Test-Path -Path "$oscdimgPath")) {
     $sourcePath = "$installPath\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg"
     $destinationPath = "$scriptDirectory"
 
-    Invoke-WebRequest -Uri $adkUrl -OutFile $downloadPath
+    if (-not (Test-Path -Path "$sourcePath\oscdimg.exe")) {
+        Invoke-WebRequest -Uri $adkUrl -OutFile $downloadPath
 
-    Write-Host
-    Write-Host "Installing ADK Setup. This may take some time. Do not exit the Script ..."
+        Write-Host
+        Write-Host "Installing ADK Setup. This may take some time. Do not exit the Script ..."
 
-    # Installing Deployment Tools only
-    Start-Process -FilePath $downloadPath -ArgumentList "/quiet /norestart /features OptionId.DeploymentTools" -Wait
+        # Installing Deployment Tools only
+        Start-Process -FilePath $downloadPath -ArgumentList "/quiet /norestart /features OptionId.DeploymentTools" -Wait
+    }
+    
     Copy-Item -Path "$sourcePath\oscdimg.exe" -Destination $destinationPath -Force
     Remove-Item -Path $downloadPath -Force
     Write-Host "Installed Successfully"
