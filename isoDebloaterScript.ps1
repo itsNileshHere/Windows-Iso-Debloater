@@ -362,16 +362,16 @@ $ISOFile = Join-Path -Path $scriptDirectory -ChildPath "$ISOFileName.iso"
 if (-not (Test-Path -Path "$oscdimgPath")) {
     Write-LogMessage "Oscdimg.exe not found at '$oscdimgPath'"
     Write-Host
-    Write-Host "Oscdimg.exe not found at '$oscdimgPath'. Exiting ..."
+    Write-Host "Oscdimg.exe not found at '$oscdimgPath'."
     Start-Sleep -Milliseconds 1800
-    Write-Host "Trying to Download oscdimg.exe"
+    Write-Host
+    Write-Host "Trying to Download oscdimg.exe ..."
 
     # Downloading Oscdimg.exe
     $adkUrl = "https://go.microsoft.com/fwlink/?linkid=2243390"
     $downloadPath= "$scriptDirectory\ADKInstaller.exe"
     $installPath = "C:\Program Files (x86)\Windows Kits\10"
     $sourcePath = "$installPath\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg"
-    $destinationPath = "$scriptDirectory"
 
     if (-not (Test-Path -Path "$sourcePath\oscdimg.exe")) {
         Invoke-WebRequest -Uri $adkUrl -OutFile $downloadPath
@@ -381,11 +381,10 @@ if (-not (Test-Path -Path "$oscdimgPath")) {
 
         # Installing Deployment Tools only
         Start-Process -FilePath $downloadPath -ArgumentList "/quiet /norestart /features OptionId.DeploymentTools" -Wait
+        Remove-Item -Path $downloadPath -Force
     }
     
-    Copy-Item -Path "$sourcePath\oscdimg.exe" -Destination $destinationPath -Force
-    Remove-Item -Path $downloadPath -Force
-    Write-Host "Installed Successfully"
+    Copy-Item -Path "$sourcePath\oscdimg.exe" -Destination $scriptDirectory -Force
     Start-Sleep -Milliseconds 1000
 }
 
