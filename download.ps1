@@ -5,7 +5,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 
 $scriptUrl = "https://raw.githubusercontent.com/itsNileshHere/Windows-ISO-Debloater/main/isoDebloaterScript.ps1"
 
-$scriptDirectory = "C:\scriptdir"
+$scriptDirectory = "$env:SystemDrive\scriptdir"
 
 if (-not (Test-Path -Path $scriptDirectory -PathType Container)) {
     New-Item -ItemType Directory -Path $scriptDirectory > $null 2>&1
