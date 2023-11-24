@@ -23,7 +23,7 @@ This script has been tested with:
 2. Launch PowerShell as **ADMINISTRATOR** and execute the following commands
 ```{powershell}
 Set-ExecutionPolicy Unrestricted -Force
-iwr -useb https://raw.githubusercontent.com/itsNileshHere/Windows-ISO-Debloater/main/download.ps1 | iex
+iwr -useb https://itsnileshhere.github.io/Windows-Iso-Debloater/download.ps1 | iex
 ```
 *Alternatively, you can manually download the script from [here](https://github.com/itsNileshHere/Windows-ISO-Debloater/releases/latest) and execute it using PowerShell with **ADMINISTRATOR** privileges.*
 
