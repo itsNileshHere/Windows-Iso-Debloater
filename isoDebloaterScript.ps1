@@ -212,18 +212,46 @@ if ($EdgeConfirm -eq 'Y' -or $EdgeConfirm -eq 'y') {
     Remove-Item -Path "$mountDirectory\Program Files (x86)\Microsoft\EdgeWebView" -Recurse -Force > $null 2>&1
     Remove-Item -Path "$mountDirectory\ProgramData\Microsoft\EdgeUpdate" -Recurse -Force > $null 2>&1
 
-    # Removing Reg keys
+    # Modifying Reg keys
     $softwarePath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\SOFTWARE'
     $systemPath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\SYSTEM'
+    $ntuserPath = Join-Path -Path $mountDirectory -ChildPath 'Users\Default\ntuser.dat'
+
     reg load HKLM\zSOFTWARE $softwarePath >$null
     reg load HKLM\zSYSTEM $systemPath >$null
+    reg load HKLM\zNTUSER $ntuserPath >$null
+
     reg delete "HKLM\zSOFTWARE\Microsoft\Active Setup\Installed Components\{9459C573-B17A-45AE-9F64-1857B5D58CEE}" /f > $null 2>&1
     reg delete "HKLM\zSOFTWARE\WOW6432Node\Microsoft\Edge" /f > $null 2>&1
     reg delete "HKLM\zSOFTWARE\WOW6432Node\Microsoft\EdgeUpdate" /f > $null 2>&1
     reg delete "HKLM\zSYSTEM\CurrentControlSet\Services\edgeupdate" /f > $null 2>&1
     reg delete "HKLM\zSYSTEM\CurrentControlSet\Services\edgeupdatem" /f > $null 2>&1
-    reg unload HKLM\z$softwarePath >$null 2>&1
-    reg unload HKLM\z$systemPath >$null 2>&1
+
+    $registryKeys = @(
+        "HKLM\zSOFTWARE\Microsoft\EdgeUpdate",
+        "HKLM\zSOFTWARE\Policies\Microsoft\EdgeUpdate",
+        "HKLM\zNTUSER\Software\Microsoft\EdgeUpdate",
+        "HKLM\zNTUSER\Software\Policies\Microsoft\EdgeUpdate"
+    )
+    foreach ($key in $registryKeys) {
+        reg add "$key" /v "DoNotUpdateToEdgeWithChromium" /t REG_DWORD /d "1" /f > $null 2>&1
+        reg add "$key" /v "UpdaterExperimentationAndConfigurationServiceControl" /t REG_DWORD /d "1" /f > $null 2>&1
+        reg add "$key" /v "InstallDefault" /t REG_DWORD /d "1" /f > $null 2>&1
+    }    
+
+    reg add "HKLM\zSOFTWARE\Microsoft\MicrosoftEdge\Main" /v "AllowPrelaunch" /t REG_DWORD /d "1" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Policies\Microsoft\MicrosoftEdge\Main" /v "AllowPrelaunch" /t REG_DWORD /d "1" /f > $null 2>&1
+    reg add "HKLM\zNTUSER\Software\Microsoft\MicrosoftEdge\Main" /v "AllowPrelaunch" /t REG_DWORD /d "1" /f > $null 2>&1
+    reg add "HKLM\zNTUSER\Software\Policies\Microsoft\MicrosoftEdge\Main" /v "AllowPrelaunch" /t REG_DWORD /d "1" /f > $null 2>&1
+
+    reg add "HKLM\zSOFTWARE\Microsoft\MicrosoftEdge\TabPreloader" /v "AllowTabPreloading" /t REG_DWORD /d "1" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Policies\Microsoft\MicrosoftEdge\TabPreloader" /v "AllowTabPreloading" /t REG_DWORD /d "1" /f > $null 2>&1
+    reg add "HKLM\zNTUSER\Software\Microsoft\MicrosoftEdge\TabPreloader" /v "AllowTabPreloading" /t REG_DWORD /d "1" /f > $null 2>&1
+    reg add "HKLM\zNTUSER\Software\Policies\Microsoft\MicrosoftEdge\TabPreloader" /v "AllowTabPreloading" /t REG_DWORD /d "1" /f > $null 2>&1
+    
+    reg unload HKLM\zSOFTWARE >$null 2>&1
+    reg unload HKLM\zSYSTEM >$null 2>&1
+    reg unload HKLM\zNTUSER >$null 2>&1
 
     # Removing Task
     $edgeTask = Get-ChildItem -Path "$mountDirectory\Windows\System32\Tasks\MicrosoftEdge*"

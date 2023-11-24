@@ -3,7 +3,8 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     Exit
 }
 
-$scriptUrl = "https://raw.githubusercontent.com/itsNileshHere/Windows-ISO-Debloater/main/isoDebloaterScript.ps1"
+# $scriptUrl = "https://raw.githubusercontent.com/itsNileshHere/Windows-ISO-Debloater/main/isoDebloaterScript.ps1"
+$scriptUrl = "https://itsnileshhere.github.io/Windows-Iso-Debloater//isoDebloaterScript.ps1"
 
 $scriptDirectory = "$env:SystemDrive\scriptdir"
 
