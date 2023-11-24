@@ -39,7 +39,7 @@ You can customize the script by modifying the following sections of the script:
 - Registry tweaks
 
 ## Oscdimg
-The provided "oscdimg.exe", used to generate the ISO, is downloaded from Microsoft's website. If you have any doubts, you can download it using the following steps:
+The script downloads "oscdimg.exe", used to generate the ISO, from Microsoft's website. If you have any doubts, you can download it using the following steps:
 
 1. Download the "Windows ADK" Package from [Microsoft](https://learn.microsoft.com/en-us/windows-hardware/get-started/adk-install).
 2. Run the setup. During installation, only check the "Deployment Tools" option and continue the installation.
