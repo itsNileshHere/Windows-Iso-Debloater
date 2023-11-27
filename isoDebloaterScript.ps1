@@ -212,7 +212,7 @@ if ($EdgeConfirm -eq 'Y' -or $EdgeConfirm -eq 'y') {
     Remove-Item -Path "$mountDirectory\Program Files (x86)\Microsoft\EdgeWebView" -Recurse -Force > $null 2>&1
     Remove-Item -Path "$mountDirectory\ProgramData\Microsoft\EdgeUpdate" -Recurse -Force > $null 2>&1
 
-    # Modifying Reg keys
+    # Modifying reg keys
     $softwarePath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\SOFTWARE'
     $systemPath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\SYSTEM'
     $ntuserPath = Join-Path -Path $mountDirectory -ChildPath 'Users\Default\ntuser.dat'
@@ -243,12 +243,11 @@ if ($EdgeConfirm -eq 'Y' -or $EdgeConfirm -eq 'y') {
     reg add "HKLM\zSOFTWARE\Policies\Microsoft\MicrosoftEdge\Main" /v "AllowPrelaunch" /t REG_DWORD /d "1" /f > $null 2>&1
     reg add "HKLM\zNTUSER\Software\Microsoft\MicrosoftEdge\Main" /v "AllowPrelaunch" /t REG_DWORD /d "1" /f > $null 2>&1
     reg add "HKLM\zNTUSER\Software\Policies\Microsoft\MicrosoftEdge\Main" /v "AllowPrelaunch" /t REG_DWORD /d "1" /f > $null 2>&1
-
     reg add "HKLM\zSOFTWARE\Microsoft\MicrosoftEdge\TabPreloader" /v "AllowTabPreloading" /t REG_DWORD /d "1" /f > $null 2>&1
     reg add "HKLM\zSOFTWARE\Policies\Microsoft\MicrosoftEdge\TabPreloader" /v "AllowTabPreloading" /t REG_DWORD /d "1" /f > $null 2>&1
     reg add "HKLM\zNTUSER\Software\Microsoft\MicrosoftEdge\TabPreloader" /v "AllowTabPreloading" /t REG_DWORD /d "1" /f > $null 2>&1
     reg add "HKLM\zNTUSER\Software\Policies\Microsoft\MicrosoftEdge\TabPreloader" /v "AllowTabPreloading" /t REG_DWORD /d "1" /f > $null 2>&1
-    
+
     reg unload HKLM\zSOFTWARE >$null 2>&1
     reg unload HKLM\zSYSTEM >$null 2>&1
     reg unload HKLM\zNTUSER >$null 2>&1
@@ -283,64 +282,76 @@ Start-Sleep -Milliseconds 500
 Write-Host
 Write-Host "Loading Registry ..."
 Write-LogMessage "Defining registry paths"
-$componentsPath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\COMPONENTS'
-$defaultPath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\default'
+# $componentsPath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\COMPONENTS'
+# $defaultPath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\default'
 $ntuserPath = Join-Path -Path $mountDirectory -ChildPath 'Users\Default\ntuser.dat'
 $softwarePath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\SOFTWARE'
 $systemPath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\SYSTEM'
 
 # Load registry
 Write-LogMessage "Loading registry"
-reg load HKLM\zCOMPONENTS $componentsPath >$null
-reg load HKLM\zDEFAULT $defaultPath >$null
+# reg load HKLM\zCOMPONENTS $componentsPath >$null
+# reg load HKLM\zDEFAULT $defaultPath >$null
 reg load HKLM\zNTUSER $ntuserPath >$null
 reg load HKLM\zSOFTWARE $softwarePath >$null
-reg load HKLM\zSYSTEM $systemPath >$null
+# reg load HKLM\zSYSTEM $systemPath >$null
 
 # Modify registry settings
 Start-Sleep -Milliseconds 1000
 Write-Host "Performing Registry Tweaks ..."
 
 # Disable Sponsored Apps
-Reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "OemPreInstalledAppsEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
-Reg add "HKLM\zNTUSER\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "PreInstalledAppsEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
-Reg add "HKLM\zNTUSER\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SilentInstalledAppsEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
-Reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableWindowsConsumerFeatures" /t REG_DWORD /d "1" /f > $null 2>&1
-Reg add "HKLM\zSOFTWARE\Microsoft\PolicyManager\current\device\Start" /v "ConfigureStartPins" /t REG_SZ /d '{\"pinnedList\": [{}]}' /f > $null 2>&1
+reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "OemPreInstalledAppsEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zNTUSER\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "PreInstalledAppsEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zNTUSER\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SilentInstalledAppsEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableWindowsConsumerFeatures" /t REG_DWORD /d "1" /f > $null 2>&1
+reg add "HKLM\zSOFTWARE\Microsoft\PolicyManager\current\device\Start" /v "ConfigureStartPins" /t REG_SZ /d '{\"pinnedList\": [{}]}' /f > $null 2>&1
 # Disable Telemetry
-Reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d "0" /f > $null 2>&1
 # Disable privacy review in OOBE
-Reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\OOBE" /v "DisablePrivacyExperience" /t REG_DWORD /d "1" /f > $null 2>&1
+reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\OOBE" /v "DisablePrivacyExperience" /t REG_DWORD /d "1" /f > $null 2>&1
 # Disable Meet Now icon
-Reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "HideSCAMeetNow" /t REG_DWORD /d "1" /f > $null 2>&1
-Reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "AllowOnlineTips" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "HideSCAMeetNow" /t REG_DWORD /d "1" /f > $null 2>&1
+reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "AllowOnlineTips" /t REG_DWORD /d "0" /f > $null 2>&1
 # Disable ad tailoring
-Reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo" /v "Enabled" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo" /v "Enabled" /t REG_DWORD /d "0" /f > $null 2>&1
 # Disable GameBar
-Reg add "HKLM\zNTUSER\SOFTWARE\Microsoft\GameBar" /v "AutoGameModeEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zNTUSER\SOFTWARE\Microsoft\GameBar" /v "AutoGameModeEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
 # Disable Cortana
-Reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\Windows Search" /v "AllowCortana" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\Windows Search" /v "AllowCortana" /t REG_DWORD /d "0" /f > $null 2>&1
 # Disables autosync to OneDrive
-Reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\OneDrive" /v "DisableLibrariesDefaultSaveToOneDrive" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\OneDrive" /v "DisableLibrariesDefaultSaveToOneDrive" /t REG_DWORD /d "0" /f > $null 2>&1
 # Changes MenuShowDelay from 400 to 200
-Reg add "HKLM\zNTUSER\Control Panel\Desktop" /v "MenuShowDelay" /t REG_SZ /d "200" /f > $null 2>&1
+reg add "HKLM\zNTUSER\Control Panel\Desktop" /v "MenuShowDelay" /t REG_SZ /d "200" /f > $null 2>&1
 # Disable everytime MRT download through Win Update
-Reg add "HKLM\zSOFTWARE\Policies\Microsoft\MRT" /v "DontOfferThroughWUAU" /t REG_DWORD /d "1" /f > $null 2>&1
+reg add "HKLM\zSOFTWARE\Policies\Microsoft\MRT" /v "DontOfferThroughWUAU" /t REG_DWORD /d "1" /f > $null 2>&1
 # Disable OneDrive Sync
-Reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\OneDrive" /v "DisableFileSyncNGSC" /t REG_DWORD /d "1" /f > $null 2>&1
-Reg add "HKLM\zSOFTWARE\Policies\Microsoft\OneDrive" /v "KFMBlockOptIn" /t REG_DWORD /d "1" /f > $null 2>&1
+reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\OneDrive" /v "DisableFileSyncNGSC" /t REG_DWORD /d "1" /f > $null 2>&1
+reg add "HKLM\zSOFTWARE\Policies\Microsoft\OneDrive" /v "KFMBlockOptIn" /t REG_DWORD /d "1" /f > $null 2>&1
+
+Write-Host
+$expConfirm = Read-Host "Windows 11 disables 'User Folders' in This PC. Wanna Enable those again? (Y/N)"
+if ($expConfirm -eq 'Y' -or $expConfirm -eq 'y') {
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{d3162b92-9365-467a-956b-92703aca08af}" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{088e3905-0323-4b02-9826-5d99428e115f}" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3dfdf296-dbec-4fb4-81d1-6a3438bcf4de}" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{24ad3ad4-a569-4530-98e1-ab02f9417aa8}" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}" /f > $null 2>&1
+
+    reg delete "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}" /v HideIfEnabled /f
+    reg delete "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{d3162b92-9365-467a-956b-92703aca08af}" /v HideIfEnabled /f
+    reg delete "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{088e3905-0323-4b02-9826-5d99428e115f}" /v HideIfEnabled /f
+    reg delete "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3dfdf296-dbec-4fb4-81d1-6a3438bcf4de}" /v HideIfEnabled /f
+    reg delete "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{24ad3ad4-a569-4530-98e1-ab02f9417aa8}" /v HideIfEnabled /f
+    reg delete "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}" /v HideIfEnabled /f
+}
 
 Start-Sleep -Milliseconds 1500
 Write-Host "Unloading Registry ..."
 Write-LogMessage "Unloading registry"
-foreach ($key in 'COMPONENTS', 'DEFAULT', 'NTUSER', 'SOFTWARE', 'SYSTEM') {
-    try {
-        reg unload HKLM\z$key >$null 2>&1
-    }
-    catch {
-        Write-LogMessage "Failed to unload registry '$key': $_"
-    }
-}
+reg unload HKLM\zNTUSER >$null 2>&1
+reg unload HKLM\SOFTWARE >$null 2>&1
 
 Start-Sleep -Milliseconds 1000
 Write-Host
