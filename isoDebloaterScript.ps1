@@ -186,7 +186,6 @@ if (Test-Path $oneDriveSetupPath2) {
 
 if ($null -ne $oneDriveSetupPath3) {
     foreach ($file in $oneDriveSetupPath3) {
-        # Write-Host = $file
         takeown /F "$file" /A > $null 2>&1
         icacls "$file" /grant:R Administrators:F /T /C > $null 2>&1
         Remove-Item -Path "$file" -Force > $null 2>&1
@@ -252,7 +251,7 @@ if ($EdgeConfirm -eq 'Y' -or $EdgeConfirm -eq 'y') {
     reg unload HKLM\zSYSTEM >$null 2>&1
     reg unload HKLM\zNTUSER >$null 2>&1
 
-    # Removing Task
+    # Removing EDGE-Task
     $edgeTask = Get-ChildItem -Path "$mountDirectory\Windows\System32\Tasks\MicrosoftEdge*"
     if ($null -ne $edgeTask) {
         foreach ($file in $edgeTask) {
@@ -278,23 +277,41 @@ if ($EdgeConfirm -eq 'Y' -or $EdgeConfirm -eq 'y') {
     Write-LogMessage "Edge removal cancelled"
 }
 
-Start-Sleep -Milliseconds 500
+# # Remove Telemetry Tasks
+# Start-Sleep -Milliseconds 1500
+# Write-Host
+# Write-Host "Remove Telemetry Tasks ..."
+# Write-LogMessage "Removing Telemetry Tasks"
+
+# reg load HKLM\zSOFTWARE $softwarePath >$null
+# reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\Application Experience\PcaPatchDbTask" /f > $null 2>&1
+# reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\Application Experience\MareBackup" /f > $null 2>&1
+# reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser" /f > $null 2>&1
+# reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\Autochk\Proxy" /f > $null 2>&1
+# reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\Customer Experience Improvement Program\Consolidator" /f > $null 2>&1
+# reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip" /f > $null 2>&1
+# reg unload HKLM\zSOFTWARE >$null 2>&1
+
+# Write-Host "Telemetry Tasks Removed."
+
+
+Start-Sleep -Milliseconds 1800
 Write-Host
 Write-Host "Loading Registry ..."
 Write-LogMessage "Defining registry paths"
-# $componentsPath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\COMPONENTS'
-# $defaultPath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\default'
+$componentsPath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\COMPONENTS'
+$defaultPath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\default'
 $ntuserPath = Join-Path -Path $mountDirectory -ChildPath 'Users\Default\ntuser.dat'
 $softwarePath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\SOFTWARE'
 $systemPath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\SYSTEM'
 
 # Load registry
 Write-LogMessage "Loading registry"
-# reg load HKLM\zCOMPONENTS $componentsPath >$null
-# reg load HKLM\zDEFAULT $defaultPath >$null
+reg load HKLM\zCOMPONENTS $componentsPath >$null
+reg load HKLM\zDEFAULT $defaultPath >$null
 reg load HKLM\zNTUSER $ntuserPath >$null
 reg load HKLM\zSOFTWARE $softwarePath >$null
-# reg load HKLM\zSYSTEM $systemPath >$null
+reg load HKLM\zSYSTEM $systemPath >$null
 
 # Modify registry settings
 Start-Sleep -Milliseconds 1000
@@ -328,6 +345,9 @@ reg add "HKLM\zSOFTWARE\Policies\Microsoft\MRT" /v "DontOfferThroughWUAU" /t REG
 # Disable OneDrive Sync
 reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\OneDrive" /v "DisableFileSyncNGSC" /t REG_DWORD /d "1" /f > $null 2>&1
 reg add "HKLM\zSOFTWARE\Policies\Microsoft\OneDrive" /v "KFMBlockOptIn" /t REG_DWORD /d "1" /f > $null 2>&1
+#Disable GameDVR
+reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\GameDVR" /v "AppCaptureEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zNTUSER\System\GameConfigStore" /v "GameDVR_Enabled" /t REG_DWORD /d "0" /f > $null 2>&1
 
 Write-Host
 $expConfirm = Read-Host "Windows 11 disables 'User Folders' in This PC. Wanna Enable those again? (Y/N)"
@@ -350,8 +370,11 @@ if ($expConfirm -eq 'Y' -or $expConfirm -eq 'y') {
 Start-Sleep -Milliseconds 1500
 Write-Host "Unloading Registry ..."
 Write-LogMessage "Unloading registry"
+reg unload HKLM\zCOMPONENTS >$null 2>&1
+reg unload HKLM\zDEFAULT >$null 2>&1
 reg unload HKLM\zNTUSER >$null 2>&1
-reg unload HKLM\SOFTWARE >$null 2>&1
+reg unload HKLM\zSOFTWARE >$null 2>&1
+reg unload HKLM\zSYSTEM >$null 2>&1
 
 Start-Sleep -Milliseconds 1000
 Write-Host
