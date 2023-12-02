@@ -104,10 +104,32 @@ Write-LogMessage "Copying files from $sourceDrive to $destinationPath"
 $null = New-Item -ItemType Directory -Path $destinationPath
 $null = xcopy.exe $sourceDrive $destinationPath /E /I /H /R /Y /J
 
-Write-LogMessage "Getting image info"
-Start-Sleep -Milliseconds 500
-dism /Get-WimInfo /wimfile:$destinationPath\sources\install.wim
-$WimIndex = Read-Host -Prompt "Enter the index to mount"
+# Check files availability
+$installWimPath = Join-Path $destinationPath "sources\install.wim"
+if (-not (Test-Path $installWimPath)) {
+    Write-Host
+    Write-Host "install.wim not found. Searching for install.esd..."
+    Start-Sleep 800
+    $installEsdPath = Join-Path $destinationPath "sources\install.esd"
+    if (Test-Path $installEsdPath) {
+        Write-Host
+        Write-Host "install.esd found at $installEsdPath."
+        Write-LogMessage "install.esd found. Converting..."
+        Start-Sleep -Milliseconds 500
+        dism /Get-WimInfo /wimfile:$installEsdPath
+        $WimIndex = Read-Host -Prompt "Enter the index to convert and mount"
+        dism /Export-Image /SourceImageFile:$installEsdPath /SourceIndex:$WimIndex /DestinationImageFile:$installWimPath /Compress:max /CheckIntegrity
+        Remove-Item $installEsdPath -Force > $null 2>&1
+    } else {
+        Write-Host "Neither install.wim nor install.esd found. Make sure to mount the correct ISO"
+        Exit
+    }
+} else {
+    Write-LogMessage "Getting image info"
+    Start-Sleep -Milliseconds 500
+    dism /Get-WimInfo /wimfile:$installWimPath
+    $WimIndex = Read-Host -Prompt "Enter the index to mount"
+}
 
 Write-LogMessage "Mounting image"
 try {
@@ -246,7 +268,8 @@ if ($EdgeConfirm -eq 'Y' -or $EdgeConfirm -eq 'y') {
     reg add "HKLM\zSOFTWARE\Policies\Microsoft\MicrosoftEdge\TabPreloader" /v "AllowTabPreloading" /t REG_DWORD /d "1" /f > $null 2>&1
     reg add "HKLM\zNTUSER\Software\Microsoft\MicrosoftEdge\TabPreloader" /v "AllowTabPreloading" /t REG_DWORD /d "1" /f > $null 2>&1
     reg add "HKLM\zNTUSER\Software\Policies\Microsoft\MicrosoftEdge\TabPreloader" /v "AllowTabPreloading" /t REG_DWORD /d "1" /f > $null 2>&1
-
+    reg add "HKLM\zSOFTWARE\Policies\Microsoft\EdgeUpdate" /v "UpdateDefault" /t REG_DWORD /d "0" /f > $null 2>&1
+    
     reg unload HKLM\zSOFTWARE >$null 2>&1
     reg unload HKLM\zSYSTEM >$null 2>&1
     reg unload HKLM\zNTUSER >$null 2>&1
@@ -319,8 +342,8 @@ Write-Host "Performing Registry Tweaks ..."
 
 # Disable Sponsored Apps
 reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "OemPreInstalledAppsEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
-reg add "HKLM\zNTUSER\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "PreInstalledAppsEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
-reg add "HKLM\zNTUSER\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SilentInstalledAppsEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "PreInstalledAppsEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SilentInstalledAppsEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
 reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableWindowsConsumerFeatures" /t REG_DWORD /d "1" /f > $null 2>&1
 reg add "HKLM\zSOFTWARE\Microsoft\PolicyManager\current\device\Start" /v "ConfigureStartPins" /t REG_SZ /d '{\"pinnedList\": [{}]}' /f > $null 2>&1
 # Disable Telemetry
