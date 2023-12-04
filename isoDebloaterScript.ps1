@@ -18,14 +18,15 @@ $asciiArt = @"
 "@
 
 Write-Host $asciiArt -ForegroundColor Cyan
-
-Write-Host "Starting Windows ISO Debloater Script ..."
+Start-Sleep -Milliseconds 1200
+Write-Host "Starting Windows ISO Debloater Script ..." -ForegroundColor Green
 Start-Sleep -Milliseconds 1500
 Write-Host
-Write-Host "There will be some prompts for the user!"
-Start-Sleep -Milliseconds 1500
-Write-Host
-Write-Host "If you want to whitelist any package, just open the script and comment out the Packagename."
+Write-Host "*Importent Notes: " -ForegroundColor Yellow
+Write-Host "    1. There will be some prompts for the user." -ForegroundColor White
+Write-Host "    2. Ensure that you have administrative privileges to run this script." -ForegroundColor White
+Write-Host "    3. Review the script before execution to understand its actions." -ForegroundColor White
+Write-Host "    4. If you want to whitelist any package, just open the script and comment out the Packagename." -ForegroundColor White
 Start-Sleep -Milliseconds 1500
 
 $scriptDirectory = "$PSScriptRoot"
