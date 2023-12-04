@@ -3,14 +3,21 @@
 # Date: 2023-11-21
 # Description: A simple PSscript to modify windows iso file. For more info check README.md
 
-
 # Administrator Privileges
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Start-Process -FilePath PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Path)`"" -Verb RunAs
     Exit
 }
+$asciiArt = @"
+ _       ___           __                      _________ ____     ____       __    __            __           
+| |     / (_)___  ____/ /___ _      _______   /  _/ ___// __ \   / __ \___  / /_  / /___  ____ _/ /____  _____
+| | /| / / / __ \/ __  / __ \ | /| / / ___/   / / \__ \/ / / /  / / / / _ \/ __ \/ / __ \/ __ `/ __/ _ \/ ___/
+| |/ |/ / / / / / /_/ / /_/ / |/ |/ (__  )  _/ / ___/ / /_/ /  / /_/ /  __/ /_/ / / /_/ / /_/ / /_/  __/ /    
+|__/|__/_/_/ /_/\__,_/\____/|__/|__/____/  /___//____/\____/  /_____/\___/_.___/_/\____/\__,_/\__/\___/_/     
+                                                                                        -By itsNileshHere                                                                                                  
+"@
 
-# Set-ExecutionPolicy unrestricted
+Write-Host $asciiArt -ForegroundColor Cyan
 
 Write-Host "Starting Windows ISO Debloater Script ..."
 Start-Sleep -Milliseconds 1500
@@ -247,6 +254,7 @@ if ($EdgeConfirm -eq 'Y' -or $EdgeConfirm -eq 'y') {
     reg delete "HKLM\zSOFTWARE\WOW6432Node\Microsoft\EdgeUpdate" /f > $null 2>&1
     reg delete "HKLM\zSYSTEM\CurrentControlSet\Services\edgeupdate" /f > $null 2>&1
     reg delete "HKLM\zSYSTEM\CurrentControlSet\Services\edgeupdatem" /f > $null 2>&1
+    # reg delete "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband" /f > $null 2>&1
 
     $registryKeys = @(
         "HKLM\zSOFTWARE\Microsoft\EdgeUpdate",
