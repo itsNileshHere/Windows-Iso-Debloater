@@ -477,10 +477,11 @@ if (-not (Test-Path -Path "$oscdimgPath")) {
                 Start-Sleep -Seconds $retryDelaySeconds
             }
         }
+        Write-Host
         Write-Host "Internet connection not available after $maxAttempts attempts. Exiting the script."
         exit
     }
-    
+
     Test-InternetConnection
 
     # Downloading Oscdimg.exe
