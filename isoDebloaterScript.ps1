@@ -479,6 +479,9 @@ if (-not (Test-Path -Path "$oscdimgPath")) {
         }
         Write-Host
         Write-Host "Internet connection not available after $maxAttempts attempts. Exiting the script."
+        Remove-Item -Path $destinationPath -Recurse -Force
+        Remove-Item -Path $mountDirectory -Recurse -Force
+        Remove-Item -Path "$env:SystemDrive\WIDTemp" -Recurse -Force
         exit
     }
 
