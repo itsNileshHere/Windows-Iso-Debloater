@@ -242,6 +242,27 @@ if ($EdgeConfirm -eq 'Y' -or $EdgeConfirm -eq 'y') {
     Remove-Item -Path "$mountDirectory\Program Files (x86)\Microsoft\EdgeWebView" -Recurse -Force > $null 2>&1
     Remove-Item -Path "$mountDirectory\ProgramData\Microsoft\EdgeUpdate" -Recurse -Force > $null 2>&1
 
+    # Remove Web-Experience Package
+    $webExperiencePackages = Get-ProvisionedAppxPackage -Path $mountDirectory | Where-Object { $_.PackageName -like "MicrosoftWindows.Client.WebExperience*" }
+    foreach ($webExperiencePackage in $webExperiencePackages) {
+        $packageNameToRemove = $webExperiencePackage.PackageName
+        dism /image:$mountDirectory /Remove-ProvisionedAppxPackage /PackageName:$packageNameToRemove > $null
+    }
+
+    # Remove WebViewHost Package
+    $WebViewHostPattern = Join-Path -Path $mountDirectory -ChildPath 'Windows\SystemApps\Microsoft.Win32WebViewHost*'
+    $WebViewHost = (Get-Item $WebViewHostPattern).FullName
+    takeown /F $WebViewHost /R /D y > $null 2>&1
+    icacls $WebViewHost /grant:R Administrators:F /T /C > $null 2>&1
+    Remove-Item -Path $WebViewHost -Recurse -Force > $null 2>&1
+
+    # Remove EdgeDevToolsClient Package
+    $EdgeDevToolsClientPattern = Join-Path -Path $mountDirectory -ChildPath 'Windows\SystemApps\Microsoft.MicrosoftEdgeDevToolsClient*'
+    $EdgeDevToolsClient = (Get-Item $EdgeDevToolsClientPattern).FullName
+    takeown /F $EdgeDevToolsClient /R /D y > $null 2>&1
+    icacls $EdgeDevToolsClient /grant:R Administrators:F /T /C > $null 2>&1
+    Remove-Item -Path $EdgeDevToolsClient -Recurse -Force > $null 2>&1
+
     # Modifying reg keys
     $softwarePath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\SOFTWARE'
     $systemPath = Join-Path -Path $mountDirectory -ChildPath 'Windows\System32\config\SYSTEM'
@@ -309,24 +330,6 @@ if ($EdgeConfirm -eq 'Y' -or $EdgeConfirm -eq 'y') {
     Write-Host "Microsoft Edge removal cancelled."
     Write-LogMessage "Edge removal cancelled"
 }
-
-# # Remove Telemetry Tasks
-# Start-Sleep -Milliseconds 1500
-# Write-Host
-# Write-Host "Remove Telemetry Tasks ..."
-# Write-LogMessage "Removing Telemetry Tasks"
-
-# reg load HKLM\zSOFTWARE $softwarePath >$null
-# reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\Application Experience\PcaPatchDbTask" /f > $null 2>&1
-# reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\Application Experience\MareBackup" /f > $null 2>&1
-# reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser" /f > $null 2>&1
-# reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\Autochk\Proxy" /f > $null 2>&1
-# reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\Customer Experience Improvement Program\Consolidator" /f > $null 2>&1
-# reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip" /f > $null 2>&1
-# reg unload HKLM\zSOFTWARE >$null 2>&1
-
-# Write-Host "Telemetry Tasks Removed."
-
 
 Start-Sleep -Milliseconds 1800
 Write-Host
@@ -470,7 +473,8 @@ if (-not (Test-Path -Path "$oscdimgPath")) {
         )
         for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
             if (Test-Connection -ComputerName google.com -Count 1 -ErrorAction SilentlyContinue) {
-                return $true
+                Write-Host
+                Write-Host "Internet connection available. Downloading..."
             } else {
                 Write-Host
                 Write-Host "Internet connection not available, Trying in $retryDelaySeconds seconds..."
@@ -479,6 +483,7 @@ if (-not (Test-Path -Path "$oscdimgPath")) {
         }
         Write-Host
         Write-Host "Internet connection not available after $maxAttempts attempts. Exiting the script."
+        Write-LogMessage "Internet connection not available after $maxAttempts attempts. Exiting the script."
         Remove-Item -Path $destinationPath -Recurse -Force
         Remove-Item -Path $mountDirectory -Recurse -Force
         Remove-Item -Path "$env:SystemDrive\WIDTemp" -Recurse -Force
