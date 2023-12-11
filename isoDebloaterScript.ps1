@@ -45,6 +45,7 @@ Write-Host
 $sourceDriveLetter = Read-Host -Prompt "Enter the drive letter of mounted image"
 if (-not (Test-Path "${sourceDriveLetter}:\" -PathType Container)) {
     Write-LogMessage "Invalid source drive: $sourceDriveLetter"
+    Write-Host "Invalid source drive: $sourceDriveLetter"
     Exit
 }
 $sourceDrive = "${sourceDriveLetter}:\"
@@ -460,6 +461,27 @@ if (-not (Test-Path -Path "$oscdimgPath")) {
     Start-Sleep -Milliseconds 1800
     Write-Host
     Write-Host "Trying to Download oscdimg.exe ..."
+
+    # Function to check internet connection
+    function Test-InternetConnection {
+        param (
+            [int]$maxAttempts = 3,
+            [int]$retryDelaySeconds = 5
+        )
+        for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            if (Test-Connection -ComputerName google.com -Count 1 -ErrorAction SilentlyContinue) {
+                return $true
+            } else {
+                Write-Host
+                Write-Host "Internet connection not available, Trying in $retryDelaySeconds seconds..."
+                Start-Sleep -Seconds $retryDelaySeconds
+            }
+        }
+        Write-Host "Internet connection not available after $maxAttempts attempts. Exiting the script."
+        exit
+    }
+    
+    Test-InternetConnection
 
     # Downloading Oscdimg.exe
     $adkUrl = "https://go.microsoft.com/fwlink/?linkid=2243390"
