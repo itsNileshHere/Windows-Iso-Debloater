@@ -465,33 +465,6 @@ if (-not (Test-Path -Path "$oscdimgPath")) {
     Write-Host
     Write-Host "Trying to Download oscdimg.exe ..."
 
-    # Function to check internet connection
-    function Test-InternetConnection {
-        param (
-            [int]$maxAttempts = 3,
-            [int]$retryDelaySeconds = 5
-        )
-        for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
-            if (Test-Connection -ComputerName google.com -Count 1 -ErrorAction SilentlyContinue) {
-                Write-Host
-                Write-Host "Internet connection available. Downloading..."
-            } else {
-                Write-Host
-                Write-Host "Internet connection not available, Trying in $retryDelaySeconds seconds..."
-                Start-Sleep -Seconds $retryDelaySeconds
-            }
-        }
-        Write-Host
-        Write-Host "Internet connection not available after $maxAttempts attempts. Exiting the script."
-        Write-LogMessage "Internet connection not available after $maxAttempts attempts. Exiting the script."
-        Remove-Item -Path $destinationPath -Recurse -Force
-        Remove-Item -Path $mountDirectory -Recurse -Force
-        Remove-Item -Path "$env:SystemDrive\WIDTemp" -Recurse -Force
-        exit
-    }
-
-    Test-InternetConnection
-
     # Downloading Oscdimg.exe
     $adkUrl = "https://go.microsoft.com/fwlink/?linkid=2243390"
     $downloadPath= "$scriptDirectory\ADKInstaller.exe"
@@ -499,6 +472,33 @@ if (-not (Test-Path -Path "$oscdimgPath")) {
     $sourcePath = "$installPath\Assessment and Deployment Kit\Deployment Tools\amd64\Oscdimg"
 
     if (-not (Test-Path -Path "$sourcePath\oscdimg.exe")) {
+
+        # Function to check internet connection
+        function Test-InternetConnection {
+            param (
+                [int]$maxAttempts = 3,
+                [int]$retryDelaySeconds = 5
+            )
+            for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+                if (Test-Connection -ComputerName google.com -Count 1 -ErrorAction SilentlyContinue) {
+                    return $true
+                } else {
+                    Write-Host
+                    Write-Host "Internet connection not available, Trying in $retryDelaySeconds seconds..."
+                    Start-Sleep -Seconds $retryDelaySeconds
+                }
+            }
+            Write-Host
+            Write-Host "Internet connection not available after $maxAttempts attempts. Exiting the script."
+            Write-LogMessage "Internet connection not available after $maxAttempts attempts. Exiting the script."
+            Remove-Item -Path $destinationPath -Recurse -Force
+            Remove-Item -Path $mountDirectory -Recurse -Force
+            Remove-Item -Path "$env:SystemDrive\WIDTemp" -Recurse -Force
+            exit
+        }
+
+        Test-InternetConnection
+
         Invoke-WebRequest -Uri $adkUrl -OutFile $downloadPath
 
         Write-Host
