@@ -2,7 +2,7 @@
 
 ## Overview
 
-This PowerShell script automates the debloating process for Windows ISO images. It removes specified packages, features, and performs various system tweaks to create a streamlined Windows installation.
+A PowerShell script to automate the debloating process for Windows ISO images. It removes specified packages, features, and performs various system tweaks to create a streamlined Windows installation.
 
 ## Prerequisites
 
