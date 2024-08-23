@@ -42,16 +42,48 @@ function Write-LogMessage {
 
 Write-LogMessage "Script started"
 Write-Host
-$sourceDriveLetter = Read-Host -Prompt "Enter the drive letter of mounted image"
-if (-not (Test-Path "${sourceDriveLetter}:\" -PathType Container)) {
-    Write-LogMessage "Invalid source drive: $sourceDriveLetter"
-    Write-Host "Invalid source drive: $sourceDriveLetter"
+# $sourceDriveLetter = Read-Host -Prompt "Enter the drive letter of mounted image"
+# if (-not (Test-Path "${sourceDriveLetter}:\" -PathType Container)) {
+#     Write-LogMessage "Invalid source drive: $sourceDriveLetter"
+#     Write-Host "Invalid source drive: $sourceDriveLetter"
+#     Exit
+# }
+
+Add-Type -AssemblyName System.Windows.Forms
+
+$openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
+$openFileDialog.InitialDirectory = [Environment]::GetFolderPath("Desktop")
+$openFileDialog.Filter = "ISO files (*.iso)|*.iso"
+$openFileDialog.Title = "Select Windows ISO File"
+
+if ($openFileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+    $isoFilePath = $openFileDialog.FileName
+    Write-Host "Selected ISO file: $isoFilePath"
+    Write-LogMessage "ISO Path: $isoFilePath"
+
+    $mountResult = Mount-DiskImage -ImagePath $isoFilePath -PassThru
+
+    if ($mountResult) {
+        $sourceDriveLetter = ($mountResult | Get-Volume).DriveLetter
+        if ($sourceDriveLetter) {
+            Write-LogMessage "Mounted ISO file to drive: $sourceDriveLetter`:"
+        }
+    } else {
+        Write-Host "Failed to mount the ISO file."
+        Write-LogMessage "Failed to mount the ISO file."
+        Exit
+    }
+} else {
+    Write-Host "No file selected. Exiting Script"
+    Write-LogMessage "No file selected"
     Exit
 }
-$sourceDrive = "${sourceDriveLetter}:\"
+
+$sourceDrive = "${sourceDriveLetter}\"
 $destinationPath = "$env:SystemDrive\WIDTemp\winlite"
 $mountDirectory = "$env:SystemDrive\WIDTemp\mountdir"
 $OscdimgPath = Join-Path -Path $scriptDirectory -ChildPath 'oscdimg.exe'
+$autounattendXmlPath = Join-Path -Path $scriptDirectory -ChildPath "Autounattend.xml"
 
 # Comment out the package don't wanna remove
 $packagesToRemove = @(
@@ -361,6 +393,12 @@ reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableWind
 reg add "HKLM\zSOFTWARE\Microsoft\PolicyManager\current\device\Start" /v "ConfigureStartPins" /t REG_SZ /d '{\"pinnedList\": [{}]}' /f > $null 2>&1
 # Disable Telemetry
 reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\DataCollection" /v "AllowTelemetry" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zNTUSER\Software\Microsoft\Personalization\Settings" /v "AcceptedPrivacyPolicy" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\Privacy" /v "TailoredExperiencesWithDiagnosticDataEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zNTUSER\Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy" /v "HasAccepted" /t REG_WRD /d "0" /f > $null 2>&1
+reg add "HKLM\zNTUSER\Software\Microsoft\InputPersonalization" /v "RestrictImplicitInkCollection" /t REG_DWORD /d "1" /f > $null 2>&1
+reg add "HKLM\zNTUSER\Software\Microsoft\InputPersonalization" /v "RestrictImplicitTextCollection" /t REG_DWORD /d "1" /f > $null 2>&1
+reg add "HKLM\zNTUSER\Software\Microsoft\InputPersonalization\TrainedDataStore" /v "HarvestContacts" /t REG_DWORD /d "0" /f > $null 2>&1
 # Disable privacy review in OOBE
 reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\OOBE" /v "DisablePrivacyExperience" /t REG_DWORD /d "1" /f > $null 2>&1
 # Disable Meet Now icon
@@ -381,9 +419,12 @@ reg add "HKLM\zSOFTWARE\Policies\Microsoft\MRT" /v "DontOfferThroughWUAU" /t REG
 # Disable OneDrive Sync
 reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\OneDrive" /v "DisableFileSyncNGSC" /t REG_DWORD /d "1" /f > $null 2>&1
 reg add "HKLM\zSOFTWARE\Policies\Microsoft\OneDrive" /v "KFMBlockOptIn" /t REG_DWORD /d "1" /f > $null 2>&1
-#Disable GameDVR
+# Disable GameDVR
 reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\GameDVR" /v "AppCaptureEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
 reg add "HKLM\zNTUSER\System\GameConfigStore" /v "GameDVR_Enabled" /t REG_DWORD /d "0" /f > $null 2>&1
+# Enabling Local Account Creation
+reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\OOBE" /v "BypassNR" /t REG_DWORD /d "1" /f > $null 2>&1
+Copy-Item -Path $autounattendXmlPath -Destination $destinationPath -Force
 
 Write-Host
 $expConfirm = Read-Host "Windows 11 disables 'User Folders' in This PC. Wanna Enable those again? (Y/N)"
@@ -533,6 +574,7 @@ try {
     Remove-Item -Path $destinationPath -Recurse -Force
     Remove-Item -Path $mountDirectory -Recurse -Force
     Remove-Item -Path "$env:SystemDrive\WIDTemp" -Recurse -Force
+    Dismount-DiskImage -ImagePath $isoFilePath > $null 2>&1
 }
 catch {
     Write-LogMessage "Failed to remove temporary files: $_"
