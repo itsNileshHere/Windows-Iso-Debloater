@@ -79,7 +79,7 @@ if ($openFileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
     Exit
 }
 
-$sourceDrive = "${sourceDriveLetter}\"
+$sourceDrive = "${sourceDriveLetter}:\"
 $destinationPath = "$env:SystemDrive\WIDTemp\winlite"
 $mountDirectory = "$env:SystemDrive\WIDTemp\mountdir"
 $OscdimgPath = Join-Path -Path $scriptDirectory -ChildPath 'oscdimg.exe'
