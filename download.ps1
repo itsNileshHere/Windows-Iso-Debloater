@@ -1,8 +1,3 @@
-if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Start-Process -FilePath PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Path)`"" -Verb RunAs
-    Exit
-}
-
 # $scriptUrl = "https://raw.githubusercontent.com/itsNileshHere/Windows-ISO-Debloater/main/isoDebloaterScript.ps1"
 $scriptUrl = "https://itsnileshhere.github.io/Windows-Iso-Debloater/isoDebloaterScript.ps1"
 $autounattendXmlUrl = "https://itsnileshhere.github.io/Windows-Iso-Debloater/autounattend.xml"
@@ -19,4 +14,15 @@ $XmlPath = Join-Path -Path $scriptDirectory -ChildPath "autounattend.xml"
 Invoke-WebRequest -Uri $scriptUrl -OutFile $scriptPath
 Invoke-WebRequest -Uri $autounattendXmlUrl -OutFile $XmlPath
 
-& $scriptPath
+function Test-WindowsTerminalInstalled {
+    $terminalPath = "$env:LocalAppData\Microsoft\WindowsApps\wt.exe"
+    return (Test-Path -Path $terminalPath)
+}
+
+if (Test-WindowsTerminalInstalled) {
+    Start-Process -FilePath "$env:LocalAppData\Microsoft\WindowsApps\wt.exe" -ArgumentList "powershell -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" -Verb RunAs
+} else {
+    Start-Process -FilePath "PowerShell" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" -Verb RunAs
+}
+Start-Sleep -Seconds 2
+Exit
