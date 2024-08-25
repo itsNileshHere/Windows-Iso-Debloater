@@ -24,5 +24,5 @@ if (Test-WindowsTerminalInstalled) {
 } else {
     Start-Process -FilePath "PowerShell" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" -Verb RunAs
 }
-Start-Sleep -Seconds 2
+Start-Sleep -Milliseconds 200
 Exit
