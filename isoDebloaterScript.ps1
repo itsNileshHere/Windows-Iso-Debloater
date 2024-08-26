@@ -266,7 +266,7 @@ function Remove-OneDriveItem {
     if (Test-Path $Path) {
         takeown /F "$Path" /A > $null 2>&1
         icacls "$Path" /grant:R Administrators:F /T /C > $null 2>&1
-        Remove-Item -Path "$Path" -Force > $null 2>&1
+        Remove-Item -Path "$Path" -Recurse -Force > $null 2>&1
     }
 }
 Write-LogMessage "Removing OneDrive"
