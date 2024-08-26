@@ -6,7 +6,7 @@ A PowerShell script to automate the debloating process for Windows ISO images. I
 
 ## Prerequisites
 
-- Windows operating system
+- Windows OS
 - PowerShell
 - Administrator privileges
 
@@ -15,24 +15,26 @@ A PowerShell script to automate the debloating process for Windows ISO images. I
 This script has been tested with:
 
 - Windows 10 version 22H2 (Build 19045.3757)
-- Windows 11 version 23H2 (Build 22631.2787)
+- Windows 11 version 23H2 (Build 22631.4037)
+
+Should work with any other versions too
 
 ## Usage
 
-1. Download and Mount the windows ISO
-2. Launch PowerShell as **ADMINISTRATOR** and execute the following commands
+1. Launch PowerShell as **ADMINISTRATOR** and execute the following commands
 ```{powershell}
 Set-ExecutionPolicy Unrestricted -Force
 iwr -useb https://itsnileshhere.github.io/Windows-Iso-Debloater/download.ps1 | iex
 ```
 *Alternatively, you can manually download the script from [here](https://github.com/itsNileshHere/Windows-ISO-Debloater/releases/latest) and execute it using PowerShell with **ADMINISTRATOR** privileges.*
 
+2. Select Windows ISO from the dialogue. Follow the instructions.
 3. The ISO will be generated in the same directory where the script is located.
 4. To whitelist a package, simply comment out its name in the script.
 
 ## Customization
 
-You can customize the script by modifying the following sections of the script:
+Package removal can be customized by modifying the following sections of the script:
 
 - Packages to remove
 - Features to remove
