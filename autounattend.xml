@@ -5,7 +5,9 @@
             <OOBE>
                 <SkipUserOOBE>false</SkipUserOOBE>
                 <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+                <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
                 <HideLocalAccountScreen>false</HideLocalAccountScreen>
+                <ProtectYourPC>3</ProtectYourPC>
             </OOBE>
         </component>
     </settings>
