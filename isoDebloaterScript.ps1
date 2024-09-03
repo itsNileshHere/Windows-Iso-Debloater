@@ -122,7 +122,7 @@ $packagesToRemove = @(
     'Microsoft.XboxGamingOverlay*', # XboxGamingOverlay
     'Microsoft.XboxSpeechToTextOverlay*', # XboxSpeechToTextOverlay
     'Microsoft.Xbox.TCUI*', # XboxTCUI
-    'Microsoft.SecHealthUI*',
+    # 'Microsoft.SecHealthUI*',
     'MicrosoftWindows.CrossDevice*'
 )
 
@@ -278,15 +278,14 @@ if ($null -ne $oneDriveSetupPath3) {
         Remove-OneDriveItem -Path $file
     }
 }
-Get-ChildItem "$mountDirectory\Windows\WinSxS\amd64_microsoft-windows-onedrive*" -Directory | ForEach-Object { 
-    Remove-OneDriveItem -Path $_.FullName
-}
+Get-ChildItem "$mountDirectory\Windows\WinSxS\amd64_microsoft-windows-onedrive-setup*" -Directory | ForEach-Object { takeown /f  $_.FullName /R /D Y; icacls $_.FullName /grant:R Administrators:F /T /C /Q; Remove-Item $_.FullName -Recurse -Force } > $null 2>&1
+
 Write-Host "OneDrive Removed"
 
 # Remove EDGE
 Start-Sleep -Milliseconds 1500
 Write-Host
-$EdgeConfirm = Read-Host "Do you want to remove Microsoft Edge? (Y/N)"
+$EdgeConfirm = Read-Host "Remove Microsoft Edge? (Y/N)"
 
 if ($EdgeConfirm -eq 'Y' -or $EdgeConfirm -eq 'y') {
     Write-LogMessage "Removing EDGE"
@@ -339,10 +338,11 @@ if ($EdgeConfirm -eq 'Y' -or $EdgeConfirm -eq 'y') {
     reg delete "HKLM\zSOFTWARE\WOW6432Node\Microsoft\Edge" /f > $null 2>&1
     reg delete "HKLM\zSOFTWARE\WOW6432Node\Microsoft\EdgeUpdate" /f > $null 2>&1
     reg delete "HKLM\zSYSTEM\CurrentControlSet\Services\edgeupdate" /f > $null 2>&1
+    reg delete "HKLM\zSYSTEM\ControlSet001\Services\edgeupdate" /f > $null 2>&1
     reg delete "HKLM\zSYSTEM\CurrentControlSet\Services\edgeupdatem" /f > $null 2>&1
+    reg delete "HKLM\zSYSTEM\ControlSet001\Services\edgeupdatem" /f > $null 2>&1
     reg delete "HKLM\zSOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Microsoft Edge" /f > $null 2>&1
     reg delete "HKLM\zSOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Microsoft Edge Update" /f > $null 2>&1
-    # reg delete "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband" /f > $null 2>&1
 
     $registryKeys = @(
         "HKLM\zSOFTWARE\Microsoft\EdgeUpdate",
@@ -441,8 +441,8 @@ reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryM
 reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SilentInstalledAppsEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
 reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\CloudContent" /v "DisableWindowsConsumerFeatures" /t REG_DWORD /d "1" /f > $null 2>&1
 reg add "HKLM\zSOFTWARE\Microsoft\PolicyManager\current\device\Start" /v "ConfigureStartPins" /t REG_SZ /d '{\"pinnedList\": [{}]}' /f > $null 2>&1
-reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContentEnabled'" /t REG_SZ /d "0" /f > $null 2>&1
-reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContentEnabled'" /t REG_DWORD /d "0" /f > $null 2>&1
+reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContentEnabled" /t REG_SZ /d "0" /f > $null 2>&1
+reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContentEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
 reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-310093Enabled" /t REG_DWORD /d "0" /f > $null 2>&1
 reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-338388Enabled" /t REG_DWORD /d "0" /f > $null 2>&1
 reg add "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-338389Enabled" /t REG_DWORD /d "0" /f > $null 2>&1
@@ -502,9 +502,8 @@ reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Orchestra
 # Prevents Chat Auto Installation
 reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Communications" /v "ConfigureChatAutoInstall" /t REG_DWORD /d "0" /f > $null 2>&1
 reg add "HKLM\zSOFTWARE\Policies\Microsoft\Windows\Windows Chat" /v "ChatIcon" /t REG_DWORD /d "3" /f > $null 2>&1
-
-& 'reg' 'add' 'HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Orchestrator\UScheduler\OutlookUpdate' '/v' 'workCompleted' '/t' 'REG_DWORD' '/d' '1' '/f' >null
-& 'reg' 'add' 'HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Orchestrator\UScheduler\DevHomeUpdate' '/v' 'workCompleted' '/t' 'REG_DWORD' '/d' '1' '/f' >null
+# Onedrive junk
+reg delete "HKLM\zNTUSER\Software\Microsoft\Windows\CurrentVersion\Run" /v "OneDriveSetup" /f > $null 2>&1
 
 Write-Host "`nDisabling Scheduled Tasks..."
 reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tasks\{4738DE7A-BCC1-4E2D-B1B0-CADB044BFA81}" /f > $null 2>&1
@@ -518,7 +517,7 @@ reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCach
 reg delete "HKLM\zSOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip" /f > $null 2>&1
 
 Write-Host
-$expConfirm = Read-Host "Windows 11 disables 'User Folders' in This PC. Wanna Enable those again? (Y/N)"
+$expConfirm = Read-Host "Windows 11 disables 'User Folders' in This PC. Enable those again? (Y/N)"
 if ($expConfirm -eq 'Y' -or $expConfirm -eq 'y') {
     reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}" /f
     reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{d3162b92-9365-467a-956b-92703aca08af}" /f
@@ -527,12 +526,19 @@ if ($expConfirm -eq 'Y' -or $expConfirm -eq 'y') {
     reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{24ad3ad4-a569-4530-98e1-ab02f9417aa8}" /f
     reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}" /f
 
-    reg delete "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}" /v HideIfEnabled /f > $null 2>&1
-    reg delete "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{d3162b92-9365-467a-956b-92703aca08af}" /v HideIfEnabled /f > $null 2>&1
-    reg delete "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{088e3905-0323-4b02-9826-5d99428e115f}" /v HideIfEnabled /f > $null 2>&1
-    reg delete "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3dfdf296-dbec-4fb4-81d1-6a3438bcf4de}" /v HideIfEnabled /f > $null 2>&1
-    reg delete "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{24ad3ad4-a569-4530-98e1-ab02f9417aa8}" /v HideIfEnabled /f > $null 2>&1
-    reg delete "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}" /v HideIfEnabled /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}" /v "HideIfEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{d3162b92-9365-467a-956b-92703aca08af}" /v "HideIfEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{088e3905-0323-4b02-9826-5d99428e115f}" /v "HideIfEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3dfdf296-dbec-4fb4-81d1-6a3438bcf4de}" /v "HideIfEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{24ad3ad4-a569-4530-98e1-ab02f9417aa8}" /v "HideIfEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}" /v "HideIfEnabled" /t REG_DWORD /d "0" /f > $null 2>&1
+
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}" /v "HiddenByDefault" /t REG_DWORD /d "0" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{d3162b92-9365-467a-956b-92703aca08af}" /v "HiddenByDefault" /t REG_DWORD /d "0" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{088e3905-0323-4b02-9826-5d99428e115f}" /v "HiddenByDefault" /t REG_DWORD /d "0" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3dfdf296-dbec-4fb4-81d1-6a3438bcf4de}" /v "HiddenByDefault" /t REG_DWORD /d "0" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{24ad3ad4-a569-4530-98e1-ab02f9417aa8}" /v "HiddenByDefault" /t REG_DWORD /d "0" /f > $null 2>&1
+    reg add "HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}" /v "HiddenByDefault" /t REG_DWORD /d "0" /f > $null 2>&1
 }
 
 Start-Sleep -Milliseconds 1500
@@ -573,10 +579,19 @@ catch {
 
 Write-LogMessage "Exporting image"
 $SourceIndex = if (Test-Path $installWimPath) { $WimIndex } else { 1 }
-dism /Export-Image /SourceImageFile:$destinationPath\sources\install.wim /SourceIndex:$SourceIndex /DestinationImageFile:$destinationPath\sources\install2.wim /compress:max
-
-Remove-Item -Path "$destinationPath\sources\install.wim" -Force
-Rename-Item -Path "$destinationPath\sources\install2.wim" -NewName "install.wim" -Force
+Write-Host
+$convertToEsd = Read-Host "Compress install.wim to install.esd? (Y/N)"
+if ($convertToEsd -eq 'Y' -or $convertToEsd -eq 'y') {
+    dism /Export-Image /SourceImageFile:$destinationPath\sources\install.wim /SourceIndex:$SourceIndex /DestinationImageFile:$destinationPath\sources\install.esd /compress:recovery
+    Remove-Item -Path "$destinationPath\sources\install.wim" -Force
+    Write-Host "`nConversion to ESD completed"
+    Write-LogMessage "Conversion to ESD completed"
+} else {
+    Write-Host "Conversion to ESD skipped"
+    dism /Export-Image /SourceImageFile:$destinationPath\sources\install.wim /SourceIndex:$SourceIndex /DestinationImageFile:$destinationPath\sources\install2.wim /compress:recovery
+    Remove-Item -Path "$destinationPath\sources\install.wim" -Force
+    Rename-Item -Path "$destinationPath\sources\install2.wim" -NewName "install.wim" -Force
+}
 
 Write-LogMessage "Specifying boot data"
 $bootData = '2#p0,e,b"{0}"#pEF,e,b"{1}"' -f "$destinationPath\boot\etfsboot.com", "$destinationPath\efi\Microsoft\boot\efisys.bin"
@@ -586,7 +601,6 @@ Write-LogMessage "Checking required files"
 Write-Host
 $ISOFileName = Read-Host -Prompt "Enter the name for the ISO file (without extension)"
 $ISOFile = Join-Path -Path $scriptDirectory -ChildPath "$ISOFileName.iso"
-
 
 if (-not (Test-Path -Path $Oscdimg)) {
     Write-LogMessage "Oscdimg.exe not found at '$Oscdimg'"
@@ -601,16 +615,18 @@ if (-not (Test-Path -Path $Oscdimg)) {
             [int]$retryDelaySeconds = 5
         )
         for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
-            if (-not (Test-Connection -ComputerName google.com -Count 1 -ErrorAction SilentlyContinue)) {
+            if (Test-Connection -ComputerName google.com -Count 1 -ErrorAction SilentlyContinue) {
+                return $true
+            } else {
                 Write-Host "`nInternet connection not available, Trying in $retryDelaySeconds seconds..."
                 Start-Sleep -Seconds $retryDelaySeconds
             }
         }
-        Write-Host "`nInternet connection not available after $maxAttempts attempts. Exiting the script."
-        Write-LogMessage "Internet connection not available after $maxAttempts attempts. Exiting the script."
+        Write-Host "Internet connection not available after $maxAttempts attempts. Exiting the script."
         CleanupTemp
-        exit
+        Exit
     }
+    
     Test-InternetConnection
 
     # Downloading Oscdimg.exe
@@ -653,5 +669,5 @@ finally {
 }
 
 Start-Sleep -Milliseconds 1500
-Write-Host "`nScript Completed. You can find the ISO in `"$scriptDirectory"`"
+Write-Host "`nScript Completed. Can find the ISO in `"$scriptDirectory"`"
 Read-Host -Prompt "Done. Press Enter to exit"
